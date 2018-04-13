@@ -1,370 +1,453 @@
 <!DOCTYPE html>
 <meta charset="utf-8">
 <style>
-.axis text {
-  font: 10px sans-serif;
-}
-.axis line,
-.axis path {
-  fill: none;
-  stroke: #000;
-  shape-rendering: crispEdges;
-}
-.path-line {
-  fill: none;
-  stroke: yellow;
-  stroke-width: 1.5px;
-}
-svg {
-  background: #f0f0f0;
-}
 
-.bar--positive {
-        fill: steelblue;
-    }
+  body {
+    font-family: helvetica, sans-serif;
+    color: #4A4A4A;
+  }
 
-    .bar--negative {
-        fill: darkorange;
-    }
+  .axis text {
+    font: 10px sans-serif;
+  }
 
-    .counties :hover {
-  fill:yellow;
-}
+  .axis line,
+  .axis path {
+    fill: none;
+    stroke: #000;
+    shape-rendering: crispEdges;
+  }
 
-.counties{
-    fill:lightgrey;
-}
+  .path-line {
+    fill: none;
+    stroke: yellow;
+    stroke-width: 1.5px;
+  }
 
-.county-borders {
-  fill: none;
-  stroke:white;
-  stroke-width: 0.5px;
-  stroke-linejoin: round;
-  stroke-linecap: round;
-  pointer-events: none;
-}
+  svg {
+    background: #f0f0f0;
+  }
 
-.county-borders-weather {
-  fill: none;
-  stroke:black;
-  stroke-width: 0.5px;
-  stroke-linejoin: round;
-  stroke-linecap: round;
-  pointer-events: none;
-}
+  .bar--positive {
+    fill: steelblue;
+  }
 
-.map svg{
-  width:960px;
-  height:600px;
-}
+  .bar--negative {
+    fill: darkorange;
+  }
 
-.extreme-weather-options button{
-    width: 100px;
-    height:50px;
+  .counties :hover {
+    fill: yellow;
+  }
 
-}
+  .counties {
+    fill: lightgrey;
+  }
+
+  .county-borders {
+    fill: none;
+    stroke: white;
+    stroke-width: 0.5px;
+    stroke-linejoin: round;
+    stroke-linecap: round;
+    pointer-events: none;
+  }
+
+  .county-borders-weather {
+    fill: none;
+    stroke: black;
+    stroke-width: 0.5px;
+    stroke-linejoin: round;
+    stroke-linecap: round;
+    pointer-events: none;
+  }
+
+  .map svg {
+    width: 960px;
+    height: 600px;
+    background-color: #0F142E;
+  }
+
+  .extreme-weather-options button {
+    width: 75px;
+    height: 25px;
+    border-radius: 5px;
+  }
+
 </style>
+
 <body>
-<div class = "extreme-weather-options">
+  <div class="extreme-weather-options">
     <button onclick="drawMap('All')">All </button>
     <button onclick="drawMap('Heat')">Heat </button>
     <button onclick="drawMap('Drought')">Drought </button>
     <button onclick="drawMap('Rain')">Rain </button>
     <button onclick="drawMap('Flood')">Flood </button>
     <button onclick="drawMap('Winter')">Winter </button>
-</div>
-<div class = "map"></div>
-<div id="county"></div>
-<div id="population"></div>
-<div id='stacked-bar-1'>
+  </div>
+  <div class="map"></div>
+  <div id="county"></div>
+  <div id="population"></div>
+  <div id="rep-scatterplot"></div>
+  <div id="dem-scatterplot"></div>
+  <div id='stacked-bar-1'>
     <h6>2016 Elections</h6>
-</div>
-<div id='stacked-bar-2'>
+  </div>
+  <div id='stacked-bar-2'>
     <h6>In support of setting strict C02 limits</h6>
-</div>
-<div id='stacked-bar-3'>
+  </div>
+  <div id='stacked-bar-3'>
     <h6>In support of regulating CO2 as pollution</h6>
-</div>
-<div id='stacked-bar-4'>
+  </div>
+  <div id='stacked-bar-4'>
     <h6>In support of funding research into renewable energy</h6>
-</div>
-<div id = "positive-negative-bar"></div>
-<script src="//d3js.org/d3.v4.min.js"></script>
-<script src="https://d3js.org/topojson.v2.min.js"></script>
-<script>
+  </div>
+  <div id="positive-negative-bar"></div>
+  <script src="//d3js.org/d3.v4.min.js"></script>
+  <script src="https://d3js.org/topojson.v2.min.js"></script>
+  <script>
+    var svg1 = d3.select(".map").append("svg");
+    var path = d3.geoPath();
 
-var svg1 = d3.select(".map").append("svg");
-var path = d3.geoPath();
+    var key0 = ["Republicans2016", "Democrats2016", "Other_Parties2016"];
+    var key1 = ["CO2limits", "Oppose_CO2limits"];
+    var key2 = ["regulate", "Oppose_regulate"];
+    var key3 = ["fundrenewables", "Oppose_fundrenewables"];
 
-var key0 = ["Republicans2016","Democrats2016","Other_Parties2016"];
-var key1 = ["CO2limits", "Oppose_CO2limits"];
-var key2 = ["regulate", "Oppose_regulate"];
-var key3 = ["fundrenewables", "Oppose_fundrenewables"];
+    //init
+    drawMap('All');
 
-//init 
-drawMap('All');
+    function drawMap(extremeweathertype) {
 
-function drawMap(extremeweathertype){
+      if (extremeweathertype != "All")
+        d3.selectAll("g.counties").remove();
+      d3.json("finaldataset.json", function(data) {
+        d3.json("map.json", function(error, us) {
+          if (error) throw error;
 
-    if(extremeweathertype!="All")
-      d3.select("#map svg").remove();   
-    d3.json("finaldataset1.json",function(data){
-    d3.json("map.json", function(error, us) {
-  if (error) throw error;
+          //console.log(us.objects.counties.geometries);
 
-  //console.log(us.objects.counties.geometries);
+          svg1.append("g")
+            .attr("class", "counties")
+            .selectAll("path")
+            .data(topojson.feature(us, us.objects.counties).features)
+            .enter().append("path")
+            .attr("d", path)
+            .on("click", function(d) {
+              if (d.id.startsWith("0"))
+                geoid = d.id.substring(1, d.id.length);
+              else
+                geoid = d.id;
+              if (data[geoid] != undefined) {
 
-  svg1.append("g")
-      .attr("class", "counties")
-    .selectAll("path")
-    .data(topojson.feature(us, us.objects.counties).features)
-    .enter().append("path")
-      .attr("d", path)
-      .on("click", function(d){
-        if(d.id.startsWith("0"))
-            geoid = d.id.substring(1,d.id.length);
-        else
-            geoid = d.id;
-        if(data[geoid]!= undefined){
-        
-        d3.select("#county text").remove();
-        d3.select("#population text").remove();
+                d3.select("#county text").remove();
+                d3.select("#population text").remove();
 
-        d3.select("#county")
-            .append("text")
-                .text(data[geoid]["County"]);  
-        
-        d3.select("#population")
-            .append("text")
-                .text(data[geoid]["TotalPopulation"]); 
+                d3.select("#county")
+                  .append("text")
+                  .text(data[geoid]["County"]);
 
-       // console.log(data[geoid]);
-        var selected_county_data = [];
-        data[geoid]["Oppose_CO2limits"] = 100 -data[geoid]["CO2limits"];
-        data[geoid]["Oppose_regulate"] = 100 - data[geoid]["regulate"];
-        data[geoid]["Oppose_fundrenewables"] = 100 -  data[geoid]["fundrenewables"];
-        data[geoid]["Other_Parties2016"] = 100 - data[geoid]["Republicans2016"] - data[geoid]["Democrats2016"];
-        
-        selected_county_data.push(data[geoid]);
-        
-        console.log(selected_county_data);
+                d3.select("#population")
+                  .append("text")
+                  .text(data[geoid]["TotalPopulation"]);
 
-        initStackedBarChart.draw({
-            data: selected_county_data,
-            key: key0,
-            element: 'stacked-bar-1'
-        });
-        initStackedBarChart.draw({
-            data: selected_county_data,
-            key: key1,
-            element: 'stacked-bar-2'
-        });
+                // console.log(data[geoid]);
+                var selected_county_data = [];
+                data[geoid]["Oppose_CO2limits"] = 100 - data[geoid]["CO2limits"];
+                data[geoid]["Oppose_regulate"] = 100 - data[geoid]["regulate"];
+                data[geoid]["Oppose_fundrenewables"] = 100 - data[geoid]["fundrenewables"];
+                data[geoid]["Other_Parties2016"] = 100 - data[geoid]["Republicans2016"] - data[geoid]["Democrats2016"];
 
-        initStackedBarChart.draw({
-            data: selected_county_data,
-            key: key2,
-            element: 'stacked-bar-3'
-        });
+                selected_county_data.push(data[geoid]);
 
-        initStackedBarChart.draw({
-            data: selected_county_data,
-            key: key3,
-            element: 'stacked-bar-4'
-        });
+                console.log(selected_county_data);
 
-        createNegativePositiveBar(data[geoid]);
-            
-        }
-      })
-      .attr("fill",function(d){
+                initStackedBarChart.draw({
+                  data: selected_county_data,
+                  key: key0,
+                  element: 'stacked-bar-1'
+                });
+                initStackedBarChart.draw({
+                  data: selected_county_data,
+                  key: key1,
+                  element: 'stacked-bar-2'
+                });
 
-        if(d.id.startsWith("0"))
-            geoid = d.id.substring(1,d.id.length);
-        else
-            geoid = d.id;
+                initStackedBarChart.draw({
+                  data: selected_county_data,
+                  key: key2,
+                  element: 'stacked-bar-3'
+                });
 
-        if(data[geoid]!= undefined)
-        {
-          if(data[geoid]["Outlier"] === "Dem")
-              return "blue";
+                initStackedBarChart.draw({
+                  data: selected_county_data,
+                  key: key3,
+                  element: 'stacked-bar-4'
+                });
 
-          if (data[geoid]["Outlier"] === "Rep")
-            return "red";
-        }
-      })
-      .attr("stroke",function(d){
-        if(d.id.startsWith("0"))
-            geoid = d.id.substring(1,d.id.length);
-        else
-            geoid = d.id;
+                createNegativePositiveBar(data[geoid]);
 
-        if(data[geoid]!= undefined){
-            if(extremeweathertype  == "All")
-            {
-                if(data[geoid][extremeweathertype]>=25){
-                   // console.log(data[geoid]["All"]);
-                    return "black";
+                //createScatterplot 1-
+
+              }
+            })
+            .attr("fill", function(d) {
+
+              if (d.id.startsWith("0"))
+                geoid = d.id.substring(1, d.id.length);
+              else
+                geoid = d.id;
+
+              if (data[geoid] != undefined) {
+                if (data[geoid]["Outlier"] === "Dem")
+                  return "blue";
+
+                if (data[geoid]["Outlier"] === "Rep")
+                  return "red";
+              }
+            })
+            .attr("stroke", function(d) {
+              if (d.id.startsWith("0"))
+                geoid = d.id.substring(1, d.id.length);
+              else
+                geoid = d.id;
+
+              if (data[geoid] != undefined) {
+                var highlightBorder = "#FF5100";
+                if (extremeweathertype == "All") {
+                  if (data[geoid][extremeweathertype] >= 25) {
+                    // console.log(data[geoid]["All"]);
+                    return highlightBorder ;
+                  }
+                } else if (extremeweathertype == "Drought") {
+                  if (data[geoid][extremeweathertype] >= 15)
+                    return highlightBorder ;
+                } else if (extremeweathertype == "Winter") {
+                  if (data[geoid][extremeweathertype] >= 5)
+                    return highlightBorder ;
+                } else if (extremeweathertype == "Flood") {
+                  if (data[geoid][extremeweathertype] >= 15)
+                    return highlightBorder ;
+                } else if (extremeweathertype == "Heat") {
+                  if (data[geoid][extremeweathertype] >= 5)
+                    return highlightBorder ;
+                } else if (extremeweathertype == "Rain") {
+                  if (data[geoid][extremeweathertype] >= 5)
+                    return highlightBorder ;
                 }
-            }
-            else if(extremeweathertype == "Drought"){
-                if(data[geoid][extremeweathertype]>=15)
-                    return "black";
-            }
-            else if(extremeweathertype == "Winter"){
-                if(data[geoid][extremeweathertype]>=5)
-                    return "black";
-            }
-            else if(extremeweathertype == "Flood"){
-                if(data[geoid][extremeweathertype]>=15)
-                    return "black";
-            }
-            else if(extremeweathertype == "Heat"){
-                if(data[geoid][extremeweathertype]>=5)
-                    return "black";
-            }
-            else if(extremeweathertype == "Rain"){
-                if(data[geoid][extremeweathertype]>=5)
-                    return "black";
-            }
-        }
-        return "white";
-      })
-      .attr("strokeWidth","0.5px")
-      .attr("strokeLinecap","round")
-      .attr("strokeLinejoin","round");
-});
-});
-}
+              }
+              return "none";
+            })
+            .attr("strokeWidth", "0.5px")
+            .attr("strokeLinecap", "round")
+            .attr("strokeLinejoin", "round");
+        });
+      });
+    }
 
-var initStackedBarChart = {
-	draw: function(config) {
-		me = this,
-		domEle = config.element,
-        d3.select("#"+domEle+ " svg").remove();
-		stackKey = config.key,
-		data = config.data,
-		margin = {top: 20, right: 20, bottom: 30, left: 50},
-		parseDate = d3.timeParse("%m/%Y"),
-		width = 960 - margin.left - margin.right,
-		height = 100 - margin.top - margin.bottom,
-		xScale = d3.scaleLinear().rangeRound([0, width]),
-		yScale = d3.scaleBand().rangeRound([height, 0]).padding(0.1),
-		color = d3.scaleOrdinal(d3.schemeCategory20),
-		xAxis = d3.axisBottom(xScale),
-		yAxis =  d3.axisLeft(yScale).tickFormat(d3.timeFormat("%b")),
-		svg = d3.select("#"+domEle).append("svg")
-				.attr("width", width + margin.left + margin.right)
-				.attr("height", height + margin.top + margin.bottom)
-				.append("g")
-				.attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+    var initStackedBarChart = {
+      draw: function(config) {
+        me = this,
+          domEle = config.element,
+          d3.select("#" + domEle + " svg").remove();
+        stackKey = config.key,
+          data = config.data,
+          margin = {
+            top: 20,
+            right: 20,
+            bottom: 30,
+            left: 50
+          },
+          parseDate = d3.timeParse("%m/%Y"),
+          width = 960 - margin.left - margin.right,
+          height = 100 - margin.top - margin.bottom,
+          xScale = d3.scaleLinear().rangeRound([0, width]),
+          yScale = d3.scaleBand().rangeRound([height, 0]).padding(0.1),
+          color = d3.scaleOrdinal(d3.schemeCategory20),
+          xAxis = d3.axisBottom(xScale),
+          yAxis = d3.axisLeft(yScale).tickFormat(d3.timeFormat("%b")),
+          svg = d3.select("#" + domEle).append("svg")
+          .attr("width", width + margin.left + margin.right)
+          .attr("height", height + margin.top + margin.bottom)
+          .append("g")
+          .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
-		var stack = d3.stack()
-			.keys(stackKey)
-			/*.order(d3.stackOrder)*/
-			.offset(d3.stackOffsetNone);
-	
-		var layers= stack(data);
-			data.sort(function(a, b) { return b.total - a.total; });
-			yScale.domain(data.map(function(d) { return parseDate(d.date); }));
-			xScale.domain([0, 100]);
+        var stack = d3.stack()
+          .keys(stackKey)
+          /*.order(d3.stackOrder)*/
+          .offset(d3.stackOffsetNone);
+
+        var layers = stack(data);
+        data.sort(function(a, b) {
+          return b.total - a.total;
+        });
+        yScale.domain(data.map(function(d) {
+          return parseDate(d.date);
+        }));
+        xScale.domain([0, 100]);
 
 
-		var layer = svg.selectAll(".layer")
-			.data(layers)
-			.enter().append("g")
-			.attr("class", "layer")
-			.style("fill", function(d,i) { return color(i); });
+        var layer = svg.selectAll(".layer")
+          .data(layers)
+          .enter().append("g")
+          .attr("class", "layer")
+          .style("fill", function(d, i) {
+            return color(i);
+          });
 
-		  layer.selectAll("rect")
-			  .data(function(d) { return d; })
-			.enter().append("rect")
-			  .attr("y", function(d) { return yScale(parseDate(d.data.date)); })
-			  .attr("x", function(d) { return xScale(d[0]); })
-			  .attr("height", 10)
-			  .attr("width", function(d) { return xScale(d[1]) - xScale(d[0]) });
+        layer.selectAll("rect")
+          .data(function(d) {
+            return d;
+          })
+          .enter().append("rect")
+          .attr("y", function(d) {
+            return yScale(parseDate(d.data.date));
+          })
+          .attr("x", function(d) {
+            return xScale(d[0]);
+          })
+          .attr("height", 10)
+          .attr("width", function(d) {
+            return xScale(d[1]) - xScale(d[0])
+          });
 
-			svg.append("g")
-			.attr("class", "axis axis--x")
-			.attr("transform", "translate(0," + (height+5) + ")")
-			.call(xAxis);
+        svg.append("g")
+          .attr("class", "axis axis--x")
+          .attr("transform", "translate(0," + (height + 5) + ")")
+          .call(xAxis);
 
-			// svg.append("g")
-			// .attr("class", "axis axis--y")
-			// .attr("transform", "translate(0,0)")
-			// .call(yAxis);							
-	}
-}
+        // svg.append("g")
+        // .attr("class", "axis axis--y")
+        // .attr("transform", "translate(0,0)")
+        // .call(yAxis);
+      }
+    }
 
 
-//var data = [{"date":"4/1854","policyyes":"40","co2yes":"10","co2no":"90", "policyno":"60","dem":30, "rep":20, "others":50}];
+    //var data = [{"date":"4/1854","policyyes":"40","co2yes":"10","co2no":"90", "policyno":"60","dem":30, "rep":20, "others":50}];
 
-//var data = [{"date":"4/1854","total":8571,"disease":1,"wounds":0,"other":5},{"date":"5/1854","total":23333,"disease":12,"wounds":0,"other":9},{"date":"6/1854","total":28333,"disease":11,"wounds":0,"other":6},{"date":"7/1854","total":28772,"disease":359,"wounds":0,"other":23},{"date":"8/1854","total":30246,"disease":828,"wounds":1,"other":30},{"date":"9/1854","total":30290,"disease":788,"wounds":81,"other":70},{"date":"10/1854","total":30643,"disease":503,"wounds":132,"other":128},{"date":"11/1854","total":29736,"disease":844,"wounds":287,"other":106},{"date":"12/1854","total":32779,"disease":1725,"wounds":114,"other":131},{"date":"1/1855","total":32393,"disease":2761,"wounds":83,"other":324},{"date":"2/1855","total":30919,"disease":2120,"wounds":42,"other":361},{"date":"3/1855","total":30107,"disease":1205,"wounds":32,"other":172},{"date":"4/1855","total":32252,"disease":477,"wounds":48,"other":57},{"date":"5/1855","total":35473,"disease":508,"wounds":49,"other":37},{"date":"6/1855","total":38863,"disease":802,"wounds":209,"other":31},{"date":"7/1855","total":42647,"disease":382,"wounds":134,"other":33},{"date":"8/1855","total":44614,"disease":483,"wounds":164,"other":25},{"date":"9/1855","total":47751,"disease":189,"wounds":276,"other":20},{"date":"10/1855","total":46852,"disease":128,"wounds":53,"other":18},{"date":"11/1855","total":37853,"disease":178,"wounds":33,"other":32},{"date":"12/1855","total":43217,"disease":91,"wounds":18,"other":28},{"date":"1/1856","total":44212,"disease":42,"wounds":2,"other":48},{"date":"2/1856","total":43485,"disease":24,"wounds":0,"other":19},{"date":"3/1856","total":46140,"disease":15,"wounds":0,"other":35}];
+    //var data = [{"date":"4/1854","total":8571,"disease":1,"wounds":0,"other":5},{"date":"5/1854","total":23333,"disease":12,"wounds":0,"other":9},{"date":"6/1854","total":28333,"disease":11,"wounds":0,"other":6},{"date":"7/1854","total":28772,"disease":359,"wounds":0,"other":23},{"date":"8/1854","total":30246,"disease":828,"wounds":1,"other":30},{"date":"9/1854","total":30290,"disease":788,"wounds":81,"other":70},{"date":"10/1854","total":30643,"disease":503,"wounds":132,"other":128},{"date":"11/1854","total":29736,"disease":844,"wounds":287,"other":106},{"date":"12/1854","total":32779,"disease":1725,"wounds":114,"other":131},{"date":"1/1855","total":32393,"disease":2761,"wounds":83,"other":324},{"date":"2/1855","total":30919,"disease":2120,"wounds":42,"other":361},{"date":"3/1855","total":30107,"disease":1205,"wounds":32,"other":172},{"date":"4/1855","total":32252,"disease":477,"wounds":48,"other":57},{"date":"5/1855","total":35473,"disease":508,"wounds":49,"other":37},{"date":"6/1855","total":38863,"disease":802,"wounds":209,"other":31},{"date":"7/1855","total":42647,"disease":382,"wounds":134,"other":33},{"date":"8/1855","total":44614,"disease":483,"wounds":164,"other":25},{"date":"9/1855","total":47751,"disease":189,"wounds":276,"other":20},{"date":"10/1855","total":46852,"disease":128,"wounds":53,"other":18},{"date":"11/1855","total":37853,"disease":178,"wounds":33,"other":32},{"date":"12/1855","total":43217,"disease":91,"wounds":18,"other":28},{"date":"1/1856","total":44212,"disease":42,"wounds":2,"other":48},{"date":"2/1856","total":43485,"disease":24,"wounds":0,"other":19},{"date":"3/1856","total":46140,"disease":15,"wounds":0,"other":35}];
 
-function createNegativePositiveBar(selected_county_data) {
+    function createNegativePositiveBar(selected_county_data) {
 
-    d3.select("#positive-negative-bar svg").remove();
+      d3.select("#positive-negative-bar svg").remove();
 
-    var margin = {top: 30, right: 10, bottom: 50, left: 50},
-    width = 500,
-    height = 300;
+      var margin = {
+          top: 30,
+          right: 10,
+          bottom: 50,
+          left: 50
+        },
+        width = 500,
+        height = 300;
 
-    var data = [{value: selected_county_data["All"], dataset:"All"},
-                {value: selected_county_data["Heat"], dataset:"Heat"},
-                {value: selected_county_data["Drought"], dataset:"Drought"},
-                {value: selected_county_data["Rain"], dataset:"Rain"},
-                {value: selected_county_data["Flood"], dataset:"Flood"},
-                {value: selected_county_data["Winter"], dataset:"Winter"},];
+      var data = [{
+          value: selected_county_data["All"],
+          dataset: "All"
+        },
+        {
+          value: selected_county_data["Heat"],
+          dataset: "Heat"
+        },
+        {
+          value: selected_county_data["Drought"],
+          dataset: "Drought"
+        },
+        {
+          value: selected_county_data["Rain"],
+          dataset: "Rain"
+        },
+        {
+          value: selected_county_data["Flood"],
+          dataset: "Flood"
+        },
+        {
+          value: selected_county_data["Winter"],
+          dataset: "Winter"
+        },
+      ];
 
-    // Add svg to
-    var svg = d3.select("#positive-negative-bar").append('svg').attr('width', width + margin.left + margin.right).attr('height', height + margin.top + margin.bottom).append('g').attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
+      // Add svg to
+      var svg = d3.select("#positive-negative-bar").append('svg').attr('width', width + margin.left + margin.right).attr('height', height + margin.top + margin.bottom).append('g').attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
 
-    // set the ranges
-    var y = d3.scaleBand()
+      // set the ranges
+      var y = d3.scaleBand()
         .range([height, 0])
         .padding(0.1);
 
-    var x = d3.scaleLinear()
+      var x = d3.scaleLinear()
         .range([0, width]);
 
-    // Scale the range of the data in the domains
-    x.domain([-70,70]);
-    y.domain(data.map(function (d) {
+      // Scale the range of the data in the domains
+      x.domain([-70, 70]);
+      y.domain(data.map(function(d) {
         return d.dataset;
-    }));
+      }));
 
-    // append the rectangles for the bar chart
-    svg.selectAll(".bar")
+      // append the rectangles for the bar chart
+      svg.selectAll(".bar")
         .data(data)
         .enter().append("rect")
-        .attr("class", function (d) {
-            return "bar bar--" + (d.value < 0 ? "negative" : "positive");
+        .attr("class", function(d) {
+          return "bar bar--" + (d.value < 0 ? "negative" : "positive");
         })
-        .attr("x", function (d) {
-            return x(Math.min(0, d.value));
+        .attr("x", function(d) {
+          return x(Math.min(0, d.value));
         })
-        .attr("y", function (d) {
-            return y(d.dataset);
+        .attr("y", function(d) {
+          return y(d.dataset);
         })
-        .attr("width", function (d) {
-            return Math.abs(x(d.value) - x(0));
+        .attr("width", function(d) {
+          return Math.abs(x(d.value) - x(0));
         })
         .attr("height", y.bandwidth());
 
-    // add the x Axis
-    svg.append("g")
+      // add the x Axis
+      svg.append("g")
         .attr("transform", "translate(0," + height + ")")
         .call(d3.axisBottom(x));
 
-    // add the y Axis
-    let yAxisGroup = svg.append("g")
+      // add the y Axis
+      let yAxisGroup = svg.append("g")
         .attr("class", "y axis")
         .attr("transform", "translate(" + x(0) + ",0)")
         .call(d3.axisRight(y));
-    yAxisGroup.selectAll('.tick')
-    .data(data)
-    .select('text')
-    .attr('x', function(d,i){return d.value<0?9:-9})
-    .style('text-anchor', function(d,i){return d.value<0?'start':'end'})
-}
+      yAxisGroup.selectAll('.tick')
+        .data(data)
+        .select('text')
+        .attr('x', function(d, i) {
+          return d.value < 0 ? 9 : -9
+        })
+        .style('text-anchor', function(d, i) {
+          return d.value < 0 ? 'start' : 'end'
+        })
+    }
 
-</script>
+    // function createScatterplot(party, all_country_data) {
+    //
+    //   var xValue = function(d) { return d.Calories;}, // data -> value
+    //     xScale = d3.scale.linear().range([0, width]), // value -> display
+    //     xMap = function(d) { return xScale(xValue(d));}, // data -> display
+    //     xAxis = d3.svg.axis().scale(xScale).orient("bottom");
+    //
+    //   var yValue = function(d) { return d["Protein (g)"];}, // data -> value
+    //     yScale = d3.scale.linear().range([height, 0]), // value -> display
+    //     yMap = function(d) { return yScale(yValue(d));}, // data -> display
+    //     yAxis = d3.svg.axis().scale(yScale).orient("left");
+    //
+    //   var svg = d3.select("#"+party)
+    //     .append(svg)
+    //     .attr('width', 200)
+    //     .height('height', 200)
+    //
+    //   svg.selectAll(".dot")
+    //     .data(all_country_data)
+    //     .enter().append("circle")
+    //       .attr("class", "dot")
+    //       .attr("r", 0.5)
+    //       .attr("cx", x_loc)
+    //       .attr("cy", y_loc)
+    //       .style("fill", "black")
+    //
+    // }
+  </script>
