@@ -68,6 +68,14 @@
     background-color: #0F142E;
   }
 
+  #Rep, #Dem, .map {
+    display: inline-block;
+  }
+
+  #Rep svg, #Dem svg{
+    background-color: white;
+  }
+
   .extreme-weather-options button {
     width: 75px;
     height: 25px;
@@ -86,10 +94,10 @@
     <button onclick="drawMap('Winter')">Winter </button>
   </div>
   <div class="map"></div>
+  <div id="Rep"></div>
+  <div id="Dem"></div>
   <div id="county"></div>
   <div id="population"></div>
-  <div id="rep-scatterplot"></div>
-  <div id="dem-scatterplot"></div>
   <div id='stacked-bar-1'>
     <h6>2016 Elections</h6>
   </div>
@@ -103,8 +111,9 @@
     <h6>In support of funding research into renewable energy</h6>
   </div>
   <div id="positive-negative-bar"></div>
-  <script src="//d3js.org/d3.v4.min.js"></script>
+  <script src="https://d3js.org/d3.v4.min.js"></script>
   <script src="https://d3js.org/topojson.v2.min.js"></script>
+  <script src="https://d3js.org/d3-axis.v1.min.js"></script>
   <script>
     var svg1 = d3.select(".map").append("svg");
     var path = d3.geoPath();
@@ -121,10 +130,13 @@
 
       if (extremeweathertype != "All")
         d3.selectAll("g.counties").remove();
-      d3.json("finaldataset.json", function(data) {
+      d3.json("info_master_json_90_outliers.json", function(data) {
+
         d3.json("map.json", function(error, us) {
           if (error) throw error;
 
+          createScatterplot("Rep", data, extremeweathertype);
+          createScatterplot("Dem", data, extremeweathertype);
           //console.log(us.objects.counties.geometries);
 
           svg1.append("g")
@@ -186,8 +198,6 @@
                 });
 
                 createNegativePositiveBar(data[geoid]);
-
-                //createScatterplot 1-
 
               }
             })
@@ -423,31 +433,93 @@
         })
     }
 
-    // function createScatterplot(party, all_country_data) {
-    //
-    //   var xValue = function(d) { return d.Calories;}, // data -> value
-    //     xScale = d3.scale.linear().range([0, width]), // value -> display
-    //     xMap = function(d) { return xScale(xValue(d));}, // data -> display
-    //     xAxis = d3.svg.axis().scale(xScale).orient("bottom");
-    //
-    //   var yValue = function(d) { return d["Protein (g)"];}, // data -> value
-    //     yScale = d3.scale.linear().range([height, 0]), // value -> display
-    //     yMap = function(d) { return yScale(yValue(d));}, // data -> display
-    //     yAxis = d3.svg.axis().scale(yScale).orient("left");
-    //
-    //   var svg = d3.select("#"+party)
-    //     .append(svg)
-    //     .attr('width', 200)
-    //     .height('height', 200)
-    //
-    //   svg.selectAll(".dot")
-    //     .data(all_country_data)
-    //     .enter().append("circle")
-    //       .attr("class", "dot")
-    //       .attr("r", 0.5)
-    //       .attr("cx", x_loc)
-    //       .attr("cy", y_loc)
-    //       .style("fill", "black")
-    //
-    // }
+    function createScatterplot(party, all_county_data, weather) {
+
+      d3.select("#" + party + " svg").remove();
+
+      var countyArray = new Array;
+
+      for (var key in all_county_data) {
+          // skip loop if the property is from prototype
+          if (!all_county_data.hasOwnProperty(key)) continue;
+
+          var obj = all_county_data[key];
+
+          if (party == "Rep" && obj["Republicans2016"] > obj["Democrats2016"] ) {
+
+            countyArray.push(obj);
+          } else if (party == "Dem" && obj["Republicans2016"] < obj["Democrats2016"] ) {
+            countyArray.push(obj);
+          }
+      }
+
+      var margin = {
+          top: 30,
+          right: 10,
+          bottom: 50,
+          left: 50
+        },
+        width = 350,
+        height = 300;
+
+      var xValue = function(d) { return d["regulate"];}, // data -> value
+        xScale = d3.scaleLinear().range([margin.left, width]).domain([60,100]), // value -> display
+        xPoint = function(d) { return xScale(xValue(d));}, // data -> display
+        xAxis = d3.axisBottom(xScale);
+
+      var yValue = function(d) { return d[weather];}, // data -> value
+        yScale = d3.scaleLinear().range([height, 0]).domain([-100,400]), // value -> display
+        yPoint = function(d) { return yScale(yValue(d)) ;}, // data -> display
+        yAxis = d3.axisLeft(yScale);
+
+      var svg = d3.select("#" + party)
+        .append("svg")
+        .attr('width', width)
+        .attr('height', height)
+          .append("g")
+
+      svg.selectAll(".dot")
+        .data(countyArray)
+        .enter().append("circle")
+          .attr('class', 'dot')
+          .attr("r", 2)
+          .attr("cx", xPoint)
+          .attr("cy", yPoint)
+          .style("fill", function (d) {
+            switch(d["Outlier"]) {
+              case "Rep":
+                    return "red";
+                  break;
+              case "Dem":
+                  return "blue";
+                  break;
+              default:
+                return "rgba(200, 200, 200, 0.3)";
+        }
+                  })
+          .attr('transform', 'translate(' + margin.left + ',' + 0 + ')')
+
+      svg.append("g")
+        .attr("class", "y axis")
+        .attr('transform', 'translate(' + margin.left + ',' + 0 + ')')
+        .call(yAxis)
+      .append("text")
+        .attr("class", "label")
+        .attr("transform", "rotate(-90)")
+        .attr("y", 6)
+        .attr("dy", ".71em")
+        .style("text-anchor", "end")
+        .text("no. of weather events");
+
+      svg.append("g")
+          .attr("class", "x axis")
+          .attr("transform", "translate(0," + yScale(0)+ ")")
+          .call(xAxis)
+        .append("text")
+          .attr("class", "label")
+          .attr("x", width)
+          .attr("y", -6)
+          .style("text-anchor", "end")
+
+    }
   </script>
