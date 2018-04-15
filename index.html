@@ -43,11 +43,11 @@ body{
   }
 
   .bar--positive {
-    fill: steelblue;
+    fill:darkorange;
   }
 
   .bar--negative {
-    fill: darkorange;
+    fill:lightgreen;
   }
 
   .counties :hover {
@@ -151,7 +151,8 @@ body{
         <button id ="Winter" onclick="drawMap('Winter')">Winter </button>
       </div>
       <div class="legend">
-        <div>Normal Counties</div>
+        <div>
+          <svg> <rect width="10" height ="10"></rect></svg>Normal Counties</div>
         <div>2016 Republican county outliers*</div>
         <div>2016 Democratic county outliers*</div>
         <div>Affected by selected extreme weather type</div>
