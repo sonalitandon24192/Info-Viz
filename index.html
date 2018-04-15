@@ -657,7 +657,7 @@ body{
         xAxis = d3.axisBottom(xScale).ticks(5);
 
       var yValue = function(d) { return d[weather];}, // data -> value
-        yScale = d3.scaleLinear().range([height-5, 20]).domain([-100,400]), // value -> display
+        yScale = d3.scaleLinear().range([height-5, 20]).domain([-100,250]), // value -> display
         yPoint = function(d) { return yScale(yValue(d)) ;}, // data -> display
         yAxis = d3.axisLeft(yScale).ticks(5);
 
@@ -708,7 +708,7 @@ body{
         .append("text")
           .attr("class", "label")
           .attr("x", width)
-          .attr("y", 55)
+          .attr("y", 70)
           .style("text-anchor", "end")
           .text("Average support for climate change policies");
 
