@@ -22,7 +22,7 @@ body{
   }
 
   .axis text {
-    font: 10px sans-serif;
+    font: 15px helvetica;
   }
 
   .axis line,
@@ -32,10 +32,27 @@ body{
     shape-rendering: crispEdges;
   }
 
+  .scatter-axis path,
+  .scatter-axis line,
+  .scatter-axis text {
+    stroke: white;
+    shape-rendering: crispEdges;
+  }
+
+  .scatter-axis text {
+    font: 10px helvetica;
+    font-weight: 300;
+    letter-spacing: 1px;
+  }
+
   .path-line {
     fill: none;
     stroke: yellow;
     stroke-width: 1.5px;
+  }
+
+  .dot line{
+    stroke: "black";
   }
 
   svg {
@@ -87,7 +104,7 @@ body{
   }
 
   #Rep svg, #Dem svg{
-   /*background-color: white;*/
+   background-color: whitegrey;
   }
 
   .extreme-weather-options{
@@ -138,11 +155,11 @@ body{
 </style>
 
 <body>
-  <div class="top-container"> 
+  <div class="top-container">
       <h1>Some Good Title Which I Can't Think Of Yet 2018 </h1>
       <!-- <h3>Some Good Title Which I Can't Think Of Yet 2018 </h3> -->
       <div class="extreme-weather-options">
-        Extreme Weather Type : 
+        Extreme Weather Type :
         <button id = "All" class = "active"onclick="drawMap('All')">All </button>
         <button id ="Heat" onclick="drawMap('Heat')">Heat </button>
         <button id ="Drought" onclick="drawMap('Drought')">Drought </button>
@@ -169,7 +186,7 @@ body{
   <div class ="lower-container">
       <div style="display:inline-block">
           <div id='stacked-bar-1'>
-            <div class="stacked-text">2016 Elections</div> 
+            <div class="stacked-text">2016 Elections</div>
             </div>
             <div id='stacked-bar-2'>
                 <div class="stacked-text">In support of setting strict CO2 limits</div>
@@ -198,10 +215,10 @@ body{
             <div class="stacked-text">Change in days of extreme weather events from 1997-2006 to 2007-2006</div>
         </div>
     </div>
-      
-          
+
+
   </div>
-   
+
   <script src="https://d3js.org/d3.v4.min.js"></script>
   <script src="https://d3js.org/topojson.v2.min.js"></script>
   <script src="https://d3js.org/d3-axis.v1.min.js"></script>
@@ -220,16 +237,16 @@ body{
     drawMap('All');
 
     function drawMap(extremeweathertype) {
-     
+
     var allbuttons = document.querySelectorAll(".extreme-weather-options button");
     for (i=0; i<allbuttons.length;i++)
       allbuttons[i].classList.remove("active");
-      
+
     document.getElementById(extremeweathertype).classList.add("active");
-     
+
       if (extremeweathertype != "All")
         d3.selectAll("g.counties").remove();
-      d3.json("info_master_json_90_outliers.json", function(data) {
+      d3.json("info_master_json_300outliers.json", function(data) {
 
         d3.json("map.json", function(error, us) {
           if (error) throw error;
@@ -341,7 +358,7 @@ body{
                 geoid = d.id;
 
               if (data[geoid] != undefined) {
-                var highlightBorder = "#53401F";
+                var highlightBorder = "darkorange";
                 if (extremeweathertype == "All") {
                   if (data[geoid][extremeweathertype] >= 25) {
                     // console.log(data[geoid]["All"]);
@@ -373,9 +390,9 @@ body{
             // svg1.append("path")
             //     .attr("class", "county-borders")
             //     .attr("d", path(topojson.mesh(us, us.objects.counties, function(a, b) { return a !== b; })));
-     
+
         });
-        
+
       });
     }
 
@@ -453,7 +470,7 @@ body{
               .attr("transform", "translate(0," + (height + 5) + ")")
                 .append("text")
                   .text("Democrats " + data[0][stackKey[0]] + "%")
-            
+
             svg.append("g")
               .attr("transform", "translate(250," + (height + 5) + ")")
                 .append("text")
@@ -463,7 +480,7 @@ body{
               .attr("transform", "translate(750," + (height + 5) + ")")
                 .append("text")
                   .text("Republicans " + data[0][stackKey[2]] + "%");
-      
+
           }
           else{
             svg.append("g")
@@ -476,8 +493,8 @@ body{
                 .append("text")
                   .text("No " + data[0][stackKey[1]] + "%");
           }
-        
-          
+
+
         // svg.append("g")
         //   .attr("class", "axis axis--x")
         //   .attr("transform", "translate(0," + (height + 5) + ")")
@@ -533,7 +550,7 @@ body{
           dataset: "Winter"
         },
       ];
-      
+
       console.log(data);
       // Add svg to
       var svg = d3.select("#positive-negative-bar").append('svg')
@@ -554,7 +571,7 @@ body{
 
       // Scale the range of the data in the domains
     //  x.domain([-100, 200]);
-    
+
       var min_value = d3.min(data, function(d) { return parseInt(d.value); });
       console.log(min_value);
      x.domain([d3.min(data, function(d) { return +d.value; }),d3.max(data, function(d) { return +d.value; })]);
@@ -587,7 +604,7 @@ body{
         .call(d3.axisBottom(x));
 
       // add the y Axis
-      let yAxisGroup = svg.append("g")      
+      let yAxisGroup = svg.append("g")
         .attr("class", "y axis")
         .attr("transform", "translate(" + x(0) + ",0)")
         .call(d3.axisRight(y));
@@ -623,24 +640,26 @@ body{
           }
       }
 
+      //sort to render outlier later
+
       var margin = {
           top: 30,
           right: 10,
           bottom: 50,
           left: 50
         },
-        width = 350,
+        width = 360,
         height = 300;
 
-      var xValue = function(d) { return d["regulate"];}, // data -> value
-        xScale = d3.scaleLinear().range([margin.left, width]).domain([60,100]), // value -> display
+      var xValue = function(d) { var ave = (d["regulate"] + d["CO2limits"] + d["fundrenewables"])/3;return ave;}, // data -> value
+        xScale = d3.scaleLinear().range([margin.left, width-10]).domain([60,100]), // value -> display
         xPoint = function(d) { return xScale(xValue(d));}, // data -> display
-        xAxis = d3.axisBottom(xScale);
+        xAxis = d3.axisBottom(xScale).ticks(5);
 
       var yValue = function(d) { return d[weather];}, // data -> value
-        yScale = d3.scaleLinear().range([height, 0]).domain([-100,400]), // value -> display
+        yScale = d3.scaleLinear().range([height-5, 20]).domain([-100,400]), // value -> display
         yPoint = function(d) { return yScale(yValue(d)) ;}, // data -> display
-        yAxis = d3.axisLeft(yScale);
+        yAxis = d3.axisLeft(yScale).ticks(5);
 
       var svg = d3.select("#" + party)
         .append("svg")
@@ -652,7 +671,7 @@ body{
         .data(countyArray)
         .enter().append("circle")
           .attr('class', 'dot')
-          .attr("r", 2)
+          .attr("r", 3)
           .attr("cx", xPoint)
           .attr("cy", yPoint)
           .style("fill", function (d) {
@@ -664,33 +683,34 @@ body{
                   return "blue";
                   break;
               default:
-                return "rgba(200, 200, 200, 0.3)";
+                return "rgba(200, 200, 200, 0.4)";
         }
                   })
           .attr('transform', 'translate(' + margin.left + ',' + 0 + ')')
 
       svg.append("g")
-        .attr("class", "y axis")
+        .attr("class", "scatter-axis")
         .attr('transform', 'translate(' + margin.left + ',' + 0 + ')')
         .call(yAxis)
       .append("text")
         .attr("class", "label")
         .attr("transform", "rotate(-90)")
+        .attr("x", -10)
         .attr("y", 6)
         .attr("dy", ".71em")
         .style("text-anchor", "end")
-        .text("no. of weather events");
+        .text("increase in days of weather events");
 
       svg.append("g")
-          .attr("class", "x axis")
+          .attr("class", "scatter-axis")
           .attr("transform", "translate(0," + yScale(0)+ ")")
           .call(xAxis)
         .append("text")
           .attr("class", "label")
           .attr("x", width)
-          .attr("y", -6)
+          .attr("y", 55)
           .style("text-anchor", "end")
-          .style("color","white")
+          .text("Average support for climate change policies");
 
     }
 
