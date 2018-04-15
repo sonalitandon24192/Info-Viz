@@ -2,6 +2,20 @@
 <meta charset="utf-8">
 <style>
 
+body{
+ margin: 0;
+}
+.top-container{
+  background-color: #0F142E;
+  padding: 30px;
+  color: white;
+  margin-top: -10px;
+}
+ body{
+    text-align: center;
+
+  }
+
   body {
     font-family: helvetica, sans-serif;
     color: #4A4A4A;
@@ -25,7 +39,7 @@
   }
 
   svg {
-    background: #f0f0f0;
+   /* background: #f0f0f0;*/
   }
 
   .bar--positive {
@@ -37,7 +51,7 @@
   }
 
   .counties :hover {
-    fill: yellow;
+  opacity:0.5;
   }
 
   .counties {
@@ -63,54 +77,130 @@
   }
 
   .map svg {
-    width: 960px;
+   width: 960px;
     height: 600px;
-    background-color: #0F142E;
+    /* width: 60%; */
   }
 
-  #Rep, #Dem, .map {
+  .scatter-plot-container, .map, .legend {
     display: inline-block;
   }
 
   #Rep svg, #Dem svg{
-    background-color: white;
+   /*background-color: white;*/
+  }
+
+  .extreme-weather-options{
+    text-align: center;
   }
 
   .extreme-weather-options button {
-    width: 75px;
-    height: 25px;
+    width: 85px;
+    height: 30px;
     border-radius: 5px;
+    margin-left:10px;
+    font-size: 14px;
+    font-weight: bold;
+
   }
+
+  .extreme-weather-options button:hover{
+    color:white;
+    background:grey;
+  }
+
+  /* .scatter-plot-container{
+    width: 40%;
+  } */
+
+.active{
+  color:white;
+    background:grey;
+}
+
+.stacked-text{
+  font-weight: bold;
+}
+
+.lower-container{
+  display: none;
+}
+
+#stacked-bar-1,#positive-negative-bar{
+  margin-top: 30px;
+}
+
+.legend{
+  width: 200px;
+  height: 200px;
+}
 
 </style>
 
 <body>
-  <div class="extreme-weather-options">
-    <button onclick="drawMap('All')">All </button>
-    <button onclick="drawMap('Heat')">Heat </button>
-    <button onclick="drawMap('Drought')">Drought </button>
-    <button onclick="drawMap('Rain')">Rain </button>
-    <button onclick="drawMap('Flood')">Flood </button>
-    <button onclick="drawMap('Winter')">Winter </button>
+  <div class="top-container"> 
+      <h1>Some Good Title Which I Can't Think Of Yet 2018 </h1>
+      <!-- <h3>Some Good Title Which I Can't Think Of Yet 2018 </h3> -->
+      <div class="extreme-weather-options">
+        Extreme Weather Type : 
+        <button id = "All" class = "active"onclick="drawMap('All')">All </button>
+        <button id ="Heat" onclick="drawMap('Heat')">Heat </button>
+        <button id ="Drought" onclick="drawMap('Drought')">Drought </button>
+        <button id ="Rain" onclick="drawMap('Rain')">Rain </button>
+        <button id ="Flood"onclick="drawMap('Flood')">Flood </button>
+        <button id ="Winter" onclick="drawMap('Winter')">Winter </button>
+      </div>
+      <div class="legend">
+        <div>Normal Counties</div>
+        <div>2016 Republican county outliers*</div>
+        <div>2016 Democratic county outliers*</div>
+        <div>Affected by selected extreme weather type</div>
+        <div>Outliers refers to counties that have higher (Republican) or lower (Democratic) than expected supports to climate change policies</div>
+      </div>
+      <div class="map"></div>
+      <div class="scatter-plot-container">
+          <div id="Rep"></div>
+          <div id="Dem"></div>
+      </div>
+      <div id="county"></div>
+      <div id="population"></div>
   </div>
-  <div class="map"></div>
-  <div id="Rep"></div>
-  <div id="Dem"></div>
-  <div id="county"></div>
-  <div id="population"></div>
-  <div id='stacked-bar-1'>
-    <h6>2016 Elections</h6>
+  <div class ="lower-container">
+      <div style="display:inline-block">
+          <div id='stacked-bar-1'>
+            <div class="stacked-text">2016 Elections</div> 
+            </div>
+            <div id='stacked-bar-2'>
+                <div class="stacked-text">In support of setting strict CO2 limits</div>
+                <div>
+                    <span class ="policy_yes"></span>
+                    <span class ="policy_no"></span>
+                </div>
+            </div>
+            <div id='stacked-bar-3'>
+                <div class="stacked-text">In support of regulating CO2 as pollution</div>
+                <div>
+                    <span class ="policy_yes"></span>
+                    <span class ="policy_no"></span>
+                </div>
+            </div>
+            <div id='stacked-bar-4'>
+                <div class="stacked-text">In support of funding research into renewable energy</div>
+                <div>
+                    <span class ="policy_yes"></span>
+                    <span class ="policy_no"></span>
+                </div>
+            </div>
+    </div>
+    <div style="display:inline-block">
+        <div id="positive-negative-bar">
+            <div class="stacked-text">Change in days of extreme weather events from 1997-2006 to 2007-2006</div>
+        </div>
+    </div>
+      
+          
   </div>
-  <div id='stacked-bar-2'>
-    <h6>In support of setting strict C02 limits</h6>
-  </div>
-  <div id='stacked-bar-3'>
-    <h6>In support of regulating CO2 as pollution</h6>
-  </div>
-  <div id='stacked-bar-4'>
-    <h6>In support of funding research into renewable energy</h6>
-  </div>
-  <div id="positive-negative-bar"></div>
+   
   <script src="https://d3js.org/d3.v4.min.js"></script>
   <script src="https://d3js.org/topojson.v2.min.js"></script>
   <script src="https://d3js.org/d3-axis.v1.min.js"></script>
@@ -118,16 +208,24 @@
     var svg1 = d3.select(".map").append("svg");
     var path = d3.geoPath();
 
-    var key0 = ["Republicans2016", "Democrats2016", "Other_Parties2016"];
+    var key0 = ["Democrats2016","Other_Parties2016","Republicans2016"];
     var key1 = ["CO2limits", "Oppose_CO2limits"];
     var key2 = ["regulate", "Oppose_regulate"];
     var key3 = ["fundrenewables", "Oppose_fundrenewables"];
+    var colors0 = ["#009900","#989898"];
+    var colors1 = ["blue","yellow","red"];
 
     //init
     drawMap('All');
 
     function drawMap(extremeweathertype) {
-
+     
+    var allbuttons = document.querySelectorAll(".extreme-weather-options button");
+    for (i=0; i<allbuttons.length;i++)
+      allbuttons[i].classList.remove("active");
+      
+    document.getElementById(extremeweathertype).classList.add("active");
+     
       if (extremeweathertype != "All")
         d3.selectAll("g.counties").remove();
       d3.json("info_master_json_90_outliers.json", function(data) {
@@ -137,8 +235,12 @@
 
           createScatterplot("Rep", data, extremeweathertype);
           createScatterplot("Dem", data, extremeweathertype);
-          //console.log(us.objects.counties.geometries);
+          console.log(us.objects.counties.geometries);
+          // var projection =  d3.geoAlbersUsa()
+		      //   .scale(100);
 
+        var path = d3.geoPath()
+          //.projection(projection);
           svg1.append("g")
             .attr("class", "counties")
             .selectAll("path")
@@ -146,6 +248,9 @@
             .enter().append("path")
             .attr("d", path)
             .on("click", function(d) {
+
+              document.querySelector(".lower-container").style.display = "block";
+
               if (d.id.startsWith("0"))
                 geoid = d.id.substring(1, d.id.length);
               else
@@ -161,10 +266,18 @@
 
                 d3.select("#population")
                   .append("text")
-                  .text(data[geoid]["TotalPopulation"]);
+                  .text("Population(2016): "+ data[geoid]["TotalPopulation"]);
 
                 // console.log(data[geoid]);
                 var selected_county_data = [];
+                //round off
+                data[geoid]["CO2limits"] = Math.round(data[geoid]["CO2limits"]);
+                data[geoid]["regulate"] = Math.round(data[geoid]["regulate"]);
+                data[geoid]["fundrenewables"] = Math.round(data[geoid]["fundrenewables"]);
+                data[geoid]["Republicans2016"] = Math.round(data[geoid]["Republicans2016"]);
+                data[geoid]["Democrats2016"] = Math.round(data[geoid]["Democrats2016"]);
+
+                //calculate no%
                 data[geoid]["Oppose_CO2limits"] = 100 - data[geoid]["CO2limits"];
                 data[geoid]["Oppose_regulate"] = 100 - data[geoid]["regulate"];
                 data[geoid]["Oppose_fundrenewables"] = 100 - data[geoid]["fundrenewables"];
@@ -177,24 +290,28 @@
                 initStackedBarChart.draw({
                   data: selected_county_data,
                   key: key0,
-                  element: 'stacked-bar-1'
+                  element: 'stacked-bar-1',
+                  colors :colors1
                 });
                 initStackedBarChart.draw({
                   data: selected_county_data,
                   key: key1,
-                  element: 'stacked-bar-2'
+                  element: 'stacked-bar-2',
+                  colors :colors0
                 });
 
                 initStackedBarChart.draw({
                   data: selected_county_data,
                   key: key2,
-                  element: 'stacked-bar-3'
+                  element: 'stacked-bar-3',
+                  colors :colors0
                 });
 
                 initStackedBarChart.draw({
                   data: selected_county_data,
                   key: key3,
-                  element: 'stacked-bar-4'
+                  element: 'stacked-bar-4',
+                  colors :colors0
                 });
 
                 createNegativePositiveBar(data[geoid]);
@@ -223,7 +340,7 @@
                 geoid = d.id;
 
               if (data[geoid] != undefined) {
-                var highlightBorder = "#FF5100";
+                var highlightBorder = "#53401F";
                 if (extremeweathertype == "All") {
                   if (data[geoid][extremeweathertype] >= 25) {
                     // console.log(data[geoid]["All"]);
@@ -248,10 +365,16 @@
               }
               return "none";
             })
-            .attr("strokeWidth", "0.5px")
+            .attr("strokeWidth", "px")
             .attr("strokeLinecap", "round")
             .attr("strokeLinejoin", "round");
+
+            // svg1.append("path")
+            //     .attr("class", "county-borders")
+            //     .attr("d", path(topojson.mesh(us, us.objects.counties, function(a, b) { return a !== b; })));
+     
         });
+        
       });
     }
 
@@ -262,6 +385,7 @@
           d3.select("#" + domEle + " svg").remove();
         stackKey = config.key,
           data = config.data,
+          colors=config.colors,
           margin = {
             top: 20,
             right: 20,
@@ -270,10 +394,10 @@
           },
           parseDate = d3.timeParse("%m/%Y"),
           width = 960 - margin.left - margin.right,
-          height = 100 - margin.top - margin.bottom,
+          height = 80 - margin.top - margin.bottom,
           xScale = d3.scaleLinear().rangeRound([0, width]),
           yScale = d3.scaleBand().rangeRound([height, 0]).padding(0.1),
-          color = d3.scaleOrdinal(d3.schemeCategory20),
+          //color = d3.scaleOrdinal(d3.schemeCategory20),
           xAxis = d3.axisBottom(xScale),
           yAxis = d3.axisLeft(yScale).tickFormat(d3.timeFormat("%b")),
           svg = d3.select("#" + domEle).append("svg")
@@ -287,6 +411,7 @@
           /*.order(d3.stackOrder)*/
           .offset(d3.stackOffsetNone);
 
+          console.log(data[0][stackKey[0]]);
         var layers = stack(data);
         data.sort(function(a, b) {
           return b.total - a.total;
@@ -302,7 +427,7 @@
           .enter().append("g")
           .attr("class", "layer")
           .style("fill", function(d, i) {
-            return color(i);
+            return colors[i];
           });
 
         layer.selectAll("rect")
@@ -321,10 +446,41 @@
             return xScale(d[1]) - xScale(d[0])
           });
 
-        svg.append("g")
-          .attr("class", "axis axis--x")
-          .attr("transform", "translate(0," + (height + 5) + ")")
-          .call(xAxis);
+          if(domEle == "stacked-bar-1" )
+          {
+            svg.append("g")
+              .attr("transform", "translate(0," + (height + 5) + ")")
+                .append("text")
+                  .text("Democrats " + data[0][stackKey[0]] + "%")
+            
+            svg.append("g")
+              .attr("transform", "translate(250," + (height + 5) + ")")
+                .append("text")
+                  .text("Others " + data[0][stackKey[1]] + "%");
+
+            svg.append("g")
+              .attr("transform", "translate(750," + (height + 5) + ")")
+                .append("text")
+                  .text("Republicans " + data[0][stackKey[2]] + "%");
+      
+          }
+          else{
+            svg.append("g")
+              .attr("transform", "translate(0," + (height + 5) + ")")
+                .append("text")
+                  .text("Yes " + data[0][stackKey[0]] + "%")
+
+            svg.append("g")
+              .attr("transform", "translate(831," + (height + 5) + ")")
+                .append("text")
+                  .text("No " + data[0][stackKey[1]] + "%");
+          }
+        
+          
+        // svg.append("g")
+        //   .attr("class", "axis axis--x")
+        //   .attr("transform", "translate(0," + (height + 5) + ")")
+        //   .call(xAxis);
 
         // svg.append("g")
         // .attr("class", "axis axis--y")
@@ -344,11 +500,11 @@
 
       var margin = {
           top: 30,
-          right: 10,
+          right: 70,
           bottom: 50,
-          left: 50
+          left: 70
         },
-        width = 500,
+        width = 960,
         height = 300;
 
       var data = [{
@@ -376,20 +532,31 @@
           dataset: "Winter"
         },
       ];
-
+      
+      console.log(data);
       // Add svg to
-      var svg = d3.select("#positive-negative-bar").append('svg').attr('width', width + margin.left + margin.right).attr('height', height + margin.top + margin.bottom).append('g').attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
+      var svg = d3.select("#positive-negative-bar").append('svg')
+      .attr('width', width + margin.left + margin.right)
+      .attr('height', height + margin.top + margin.bottom)
+        .append('g')
+          .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')')
+          .attr('width',width -margin.left -margin.right)
+          .attr('height',height -margin.top -margin.bottom);
 
       // set the ranges
       var y = d3.scaleBand()
-        .range([height, 0])
+        .range([height , 0])
         .padding(0.1);
 
       var x = d3.scaleLinear()
-        .range([0, width]);
+        .range([0, width ]);
 
       // Scale the range of the data in the domains
-      x.domain([-70, 70]);
+    //  x.domain([-100, 200]);
+    
+      var min_value = d3.min(data, function(d) { return parseInt(d.value); });
+      console.log(min_value);
+     x.domain([d3.min(data, function(d) { return +d.value; }),d3.max(data, function(d) { return +d.value; })]);
       y.domain(data.map(function(d) {
         return d.dataset;
       }));
@@ -410,15 +577,16 @@
         .attr("width", function(d) {
           return Math.abs(x(d.value) - x(0));
         })
-        .attr("height", y.bandwidth());
+        .attr("height", 40);
 
       // add the x Axis
       svg.append("g")
+        .style("font-size", "14px")
         .attr("transform", "translate(0," + height + ")")
         .call(d3.axisBottom(x));
 
       // add the y Axis
-      let yAxisGroup = svg.append("g")
+      let yAxisGroup = svg.append("g")      
         .attr("class", "y axis")
         .attr("transform", "translate(" + x(0) + ",0)")
         .call(d3.axisRight(y));
@@ -431,6 +599,7 @@
         .style('text-anchor', function(d, i) {
           return d.value < 0 ? 'start' : 'end'
         })
+        .style("font-size", "14px")
     }
 
     function createScatterplot(party, all_county_data, weather) {
@@ -520,6 +689,8 @@
           .attr("x", width)
           .attr("y", -6)
           .style("text-anchor", "end")
+          .style("color","white")
 
     }
+
   </script>
