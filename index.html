@@ -107,6 +107,10 @@ body{
    background-color: whitegrey;
   }
 
+  .blurb {
+    fill: white;
+  }
+
   .extreme-weather-options{
     text-align: center;
   }
@@ -633,7 +637,6 @@ body{
           var obj = all_county_data[key];
 
           if (party == "Rep" && obj["Republicans2016"] > obj["Democrats2016"] ) {
-
             countyArray.push(obj);
           } else if (party == "Dem" && obj["Republicans2016"] < obj["Democrats2016"] ) {
             countyArray.push(obj);
@@ -641,6 +644,19 @@ body{
       }
 
       //sort to render outlier later
+      countyArray.sort(function (a, b) {
+        var outlier_a = a["Outlier"];
+        var outlier_b = b["Outlier"];
+        if (outlier_a < outlier_b) {
+          return -1;
+        }
+        if (outlier_b > outlier_b) {
+          return 1;
+        }
+
+        // names must be equal
+        return 0;
+      })
 
       var margin = {
           top: 30,
@@ -677,13 +693,13 @@ body{
           .style("fill", function (d) {
             switch(d["Outlier"]) {
               case "Rep":
-                    return "red";
-                  break;
+                return "red";
+                break;
               case "Dem":
-                  return "blue";
-                  break;
-              default:
-                return "rgba(200, 200, 200, 0.4)";
+                return "blue";
+                break;
+              case "None":
+                return "rgba(200, 200, 200, 0.25)";
         }
                   })
           .attr('transform', 'translate(' + margin.left + ',' + 0 + ')')
@@ -702,15 +718,57 @@ body{
         .text("increase in days of weather events");
 
       svg.append("g")
-          .attr("class", "scatter-axis")
-          .attr("transform", "translate(0," + yScale(0)+ ")")
-          .call(xAxis)
-        .append("text")
-          .attr("class", "label")
-          .attr("x", width)
-          .attr("y", 70)
-          .style("text-anchor", "end")
-          .text("Average support for climate change policies");
+        .attr("class", "scatter-axis")
+        .attr("transform", "translate(0," + yScale(0)+ ")")
+        .call(xAxis)
+      .append("text")
+        .attr("class", "label")
+        .attr("x", width)
+        .attr("y", 70)
+        .style("text-anchor", "end")
+        .text("Average support for climate change policies");
+
+
+      svg.append('rect')
+        .attr('class', 'blurb')
+        .attr('x', width-130)
+        .attr('y', 30)
+        .attr('width', 130)
+        .attr('height', 50)
+        .attr('rx', 5)
+        .attr('ry', 5)
+        .style('opacity', 0.60)
+        .style('fill', "white");
+
+      svg.append('text')
+        .attr('x', width-120)
+        .attr('y', 50)
+        .attr('fill', function (d) {
+          switch(party) {
+            case "Rep":
+                  return "red";
+                break;
+            case "Dem":
+                return "blue";
+                break;
+            default:
+              return "rgba(200, 200, 200, 0.4)";
+      }
+          ;})
+        .attr('font-size', "15px")
+        .attr('font-weight', "bold")
+        .text(function (d) {
+          return party + ". counties";
+        ;});
+
+      svg.append('text')
+        .attr('width', 90)
+        .attr('x', width-120)
+        .attr('y', 70)
+        .attr('fill', '#0F142D')
+        .attr('font-size', "12px")
+        .text("No strong correlation");
+
 
     }
 
