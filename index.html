@@ -227,7 +227,7 @@ div.tooltip {
 <body>
   <div class="top-container">
       <h1>Do extreme weather events correlate with unexpected climate change beliefs? </h1>
-      <!-- <h3>Some Good Title Which I Can't Think Of Yet 2018 </h3> -->
+
       <div class="extreme-weather-options">
        <span style="font-size: 20px;"> Extreme Weather Type : </span>
         <button id = "All" class = "active"onclick="drawMap('All')">All </button>
@@ -237,9 +237,10 @@ div.tooltip {
         <button id ="Flood"onclick="drawMap('Flood')">Flood </button>
         <button id ="Winter" onclick="drawMap('Winter')">Winter Storm </button>
       </div>
+
       <div class="legend">
         <div>
-         <svg><rect width="20" height ="20" fill ="lightgray"></rect></svg>Normal Counties
+         <svg><rect width="20" height ="20" fill ="lightgray"></rect></svg>Normal counties
         </div>
         <div>
             <svg><rect width="20" height ="20" fill ="#F76E6E"></rect></svg>
@@ -247,7 +248,7 @@ div.tooltip {
         <div><svg><rect width="20" height ="20" fill ="#78B4FE"></rect></svg>
           2016 Democratic county outliers*</div>
         <div>
-            <svg><rect width="20" height ="20" stroke ="black" fill = "none"></rect></svg>Affected by selected extreme weather type</div>
+            <svg><rect width="20" height ="20" stroke ="black" fill = "none"></rect></svg>Top counties affected by selected extreme weather type</div>
             <div>
         <svg><rect width="20" height ="20" fill = "yellow"></rect></svg>Selected county</div>
             <div>
@@ -263,6 +264,9 @@ div.tooltip {
       <h2 id="county"></h2>
       <h3 id="population"></h3>
   </div>
+
+
+
   <div class ="lower-container">
       <div class="column1">
           <div id='stacked-bar-1'>
@@ -299,10 +303,11 @@ div.tooltip {
 
   </div>
 
+
+
   <script src="https://d3js.org/d3.v4.min.js"></script>
   <script src="https://d3js.org/topojson.v2.min.js"></script>
   <script src="https://d3js.org/d3-axis.v1.min.js"></script>
-  <script src="d3-tip.js"></script>
   <script>
     var svg1 = d3.select(".map").append("svg");
     var path = d3.geoPath();
@@ -332,7 +337,7 @@ div.tooltip {
 
 
      // if (extremeweathertype != "All")
-        d3.selectAll("g.counties").remove();
+      d3.selectAll("g.counties").remove();
       d3.json("info_master_json_300outliers.json", function(data) {
 
         d3.json("map.json", function(error, us) {
@@ -340,7 +345,7 @@ div.tooltip {
 
           createScatterplot("Rep", data, extremeweathertype);
           createScatterplot("Dem", data, extremeweathertype);
-          console.log(us.objects.counties.geometries);
+          //console.log(us.objects.counties.geometries);
           // var projection =  d3.geoAlbersUsa()
 		      //   .scale(100);
 
@@ -396,7 +401,7 @@ div.tooltip {
 
                 selected_county_data.push(data[geoid]);
 
-                console.log(selected_county_data);
+                //console.log(selected_county_data);
 
                 initStackedBarChart.draw({
                   data: selected_county_data,
@@ -499,21 +504,18 @@ div.tooltip {
             .attr("strokeLinecap", "round")
             .attr("strokeLinejoin", "round");
 
-            // svg1.append("path")
-            //     .attr("class", "county-borders")
-            //     .attr("d", path(topojson.mesh(us, us.objects.counties, function(a, b) { return a !== b; })));
-
         });
 
       });
     }
 
+    var lastD;
 
     var initStackedBarChart = {
       draw: function(config) {
         me = this,
-          domEle = config.element,
-          d3.select("#" + domEle + " svg").remove();
+        domEle = config.element,
+        d3.select("#" + domEle + " svg").remove();
         stackKey = config.key,
           data = config.data,
           colors=config.colors,
@@ -542,8 +544,9 @@ div.tooltip {
           /*.order(d3.stackOrder)*/
           .offset(d3.stackOffsetNone);
 
-          console.log(data[0][stackKey[0]]);
+        //console.log(data[0][stackKey[0]]);
         var layers = stack(data);
+
         data.sort(function(a, b) {
           return b.total - a.total;
         });
@@ -556,33 +559,39 @@ div.tooltip {
         var layer = svg.selectAll(".layer")
           .data(layers)
           .enter().append("g")
-          .attr("class", "layer")
-          .style("fill", function(d, i) {
-            return colors[i];
-          });
+            .attr("class", "layer")
+            .style("fill", function(d, i) {
+              return colors[i];
+            });
 
         layer.selectAll("rect")
           .data(function(d) {
-            return d;
+              return d;
           })
           .enter().append("rect")
-          .attr("y", function(d) {
-            return yScale(parseDate(d.data.date));
-          })
           .attr("x", function(d) {
-            return xScale(d[0]);
+              return xScale(d[0]);
           })
-          .attr("height", 10)
-          .attr("width", function(d) {
-            return xScale(d[1]) - xScale(d[0])
-          });
+          .transition().duration(1000)
+            .attr("y", function(d) {
+              return yScale(parseDate(d.data.date));
+            })
+            .attr("x", function(d) {
+              return xScale(d[0]);
+            })
+            .attr("height", 10)
+            .attr("width", function(d) {
+              return xScale(d[1]) - xScale(d[0]);
+            });
 
-          if(domEle == "stacked-bar-1" )
-          {
+
+
+          //add labels for left stacked bars - no need to change
+          if (domEle == "stacked-bar-1" ) {
             svg.append("g")
-              .attr("transform", "translate(0," + (height + 5) + ")")
+              .attr("transform", "translate(675," + (height + 5) + ")")
                 .append("text")
-                  .text("Democrats " + data[0][stackKey[0]] + "%")
+                  .text("Republicans " + data[0][stackKey[2]] + "%");
 
             svg.append("g")
               .attr("transform", "translate(250," + (height + 5) + ")")
@@ -590,12 +599,12 @@ div.tooltip {
                   .text("Others " + data[0][stackKey[1]] + "%");
 
             svg.append("g")
-              .attr("transform", "translate(675," + (height + 5) + ")")
+              .attr("transform", "translate(0," + (height + 5) + ")")
                 .append("text")
-                  .text("Republicans " + data[0][stackKey[2]] + "%");
+                  .text("Democrats " + data[0][stackKey[0]] + "%")
 
-          }
-          else{
+
+          } else {
             svg.append("g")
               .attr("transform", "translate(0," + (height + 5) + ")")
                 .append("text")
@@ -607,23 +616,8 @@ div.tooltip {
                   .text("No " + data[0][stackKey[1]] + "%");
           }
 
-
-        // svg.append("g")
-        //   .attr("class", "axis axis--x")
-        //   .attr("transform", "translate(0," + (height + 5) + ")")
-        //   .call(xAxis);
-
-        // svg.append("g")
-        // .attr("class", "axis axis--y")
-        // .attr("transform", "translate(0,0)")
-        // .call(yAxis);
       }
     }
-
-
-    //var data = [{"date":"4/1854","policyyes":"40","co2yes":"10","co2no":"90", "policyno":"60","dem":30, "rep":20, "others":50}];
-
-    //var data = [{"date":"4/1854","total":8571,"disease":1,"wounds":0,"other":5},{"date":"5/1854","total":23333,"disease":12,"wounds":0,"other":9},{"date":"6/1854","total":28333,"disease":11,"wounds":0,"other":6},{"date":"7/1854","total":28772,"disease":359,"wounds":0,"other":23},{"date":"8/1854","total":30246,"disease":828,"wounds":1,"other":30},{"date":"9/1854","total":30290,"disease":788,"wounds":81,"other":70},{"date":"10/1854","total":30643,"disease":503,"wounds":132,"other":128},{"date":"11/1854","total":29736,"disease":844,"wounds":287,"other":106},{"date":"12/1854","total":32779,"disease":1725,"wounds":114,"other":131},{"date":"1/1855","total":32393,"disease":2761,"wounds":83,"other":324},{"date":"2/1855","total":30919,"disease":2120,"wounds":42,"other":361},{"date":"3/1855","total":30107,"disease":1205,"wounds":32,"other":172},{"date":"4/1855","total":32252,"disease":477,"wounds":48,"other":57},{"date":"5/1855","total":35473,"disease":508,"wounds":49,"other":37},{"date":"6/1855","total":38863,"disease":802,"wounds":209,"other":31},{"date":"7/1855","total":42647,"disease":382,"wounds":134,"other":33},{"date":"8/1855","total":44614,"disease":483,"wounds":164,"other":25},{"date":"9/1855","total":47751,"disease":189,"wounds":276,"other":20},{"date":"10/1855","total":46852,"disease":128,"wounds":53,"other":18},{"date":"11/1855","total":37853,"disease":178,"wounds":33,"other":32},{"date":"12/1855","total":43217,"disease":91,"wounds":18,"other":28},{"date":"1/1856","total":44212,"disease":42,"wounds":2,"other":48},{"date":"2/1856","total":43485,"disease":24,"wounds":0,"other":19},{"date":"3/1856","total":46140,"disease":15,"wounds":0,"other":35}];
 
     function createNegativePositiveBar(selected_county_data) {
 
@@ -665,7 +659,7 @@ div.tooltip {
         },
       ];
 
-      console.log(data);
+      //console.log(data);
       // Add svg to
       var svg = d3.select("#positive-negative-bar").append('svg')
       .attr('width', width + margin.left + margin.right)
@@ -687,33 +681,39 @@ div.tooltip {
     //  x.domain([-100, 200]);
 
       var min_value = d3.min(data, function(d) { return parseInt(d.value); });
-      console.log(min_value);
+      //console.log(min_value);
      x.domain([d3.min(data, function(d) { return +d.value; }),d3.max(data, function(d) { return +d.value; })]);
       y.domain(data.map(function(d) {
         return d.dataset;
       }));
 
-      // append the rectangles for the bar chart
+      // append the rectangles for the *right* bar chart
       svg.selectAll(".bar")
         .data(data)
         .enter().append("rect")
-        .attr("class", function(d) {
-          if (d.dataset == "Net Change") {
-            return "bar bar--" + (d.value < 0 ? "negative" : "positive") + " netchange";
-          } else {
-            return "bar bar--" + (d.value < 0 ? "negative" : "positive");
-          }
-        })
-        .attr("x", function(d) {
-          return x(Math.min(0, d.value));
-        })
-        .attr("y", function(d) {
-          return y(d.dataset);
-        })
-        .attr("width", function(d) {
-          return Math.abs(x(d.value) - x(0));
-        })
-        .attr("height", 40);
+          .attr("x", function(d) {
+            //return x(Math.min(0, d.value));
+            return (d.value < 0 ? x(Math.max(0, d.value)) : x(Math.min(0, d.value)));
+
+          })
+          .attr("y", function(d) {
+            return y(d.dataset);
+          })
+          .transition().duration(750)
+            .attr("class", function(d) {
+              if (d.dataset == "Net Change") {
+                return "bar bar--" + (d.value < 0 ? "negative" : "positive") + " netchange";
+              } else {
+                return "bar bar--" + (d.value < 0 ? "negative" : "positive");
+              }
+            })
+            .attr("x", function(d) {
+              return x(Math.min(0, d.value));
+            })
+            .attr("width", function(d) {
+              return Math.abs(x(d.value) - x(0));
+            })
+            .attr("height", 40);
 
       // add the x Axis
       svg.append("g")
@@ -724,11 +724,13 @@ div.tooltip {
       svg.append("text")
       .attr("transform", "translate(300,350)")
       .text("No. of days");
+
       // add the y Axis
       let yAxisGroup = svg.append("g")
         .attr("class", "y axis")
-        .attr("transform", "translate(" + x(0) + ",0)")
-        .call(d3.axisRight(y));
+          .attr("transform", "translate(" + x(0) + ",0)")
+          .call(d3.axisRight(y));
+
       yAxisGroup.selectAll('.tick')
         .data(data)
         .select('text')
@@ -741,153 +743,159 @@ div.tooltip {
         .style("font-size", "14px")
     }
 
-    function createScatterplot(party, all_county_data, weather) {
 
-d3.select("#" + party + " svg").remove();
+function createScatterplot(party, all_county_data, weather) {
 
-var countyArray = new Array;
+  d3.select("#" + party + " svg").remove();
 
-for (var key in all_county_data) {
-    // skip loop if the property is from prototype
-    if (!all_county_data.hasOwnProperty(key)) continue;
+  var countyArray = new Array;
 
-    var obj = all_county_data[key];
+  for (var key in all_county_data) {
+      // skip loop if the property is from prototype
+      if (!all_county_data.hasOwnProperty(key)) continue;
 
-    if (party == "Rep" && obj["Republicans2016"] > obj["Democrats2016"] ) {
-      countyArray.push(obj);
-    } else if (party == "Dem" && obj["Republicans2016"] < obj["Democrats2016"] ) {
-      countyArray.push(obj);
+      var obj = all_county_data[key];
+
+      if (party == "Rep" && obj["Republicans2016"] > obj["Democrats2016"] ) {
+        countyArray.push(obj);
+      } else if (party == "Dem" && obj["Republicans2016"] < obj["Democrats2016"] ) {
+        countyArray.push(obj);
+      }
+  }
+
+  //sort to render outlier later
+  countyArray.sort(function (a, b) {
+    var outlier_a = a["Outlier"];
+    var outlier_b = b["Outlier"];
+    if (outlier_a < outlier_b) {
+      return -1;
     }
-}
+    if (outlier_b > outlier_b) {
+      return 1;
+    }
 
-//sort to render outlier later
-countyArray.sort(function (a, b) {
-  var outlier_a = a["Outlier"];
-  var outlier_b = b["Outlier"];
-  if (outlier_a < outlier_b) {
-    return -1;
-  }
-  if (outlier_b > outlier_b) {
-    return 1;
-  }
+    // names must be equal
+    return 0;
+  })
 
-  // names must be equal
-  return 0;
-})
+  var margin = {
+      top: 30,
+      right: 10,
+      bottom: 50,
+      left: 50
+    },
+    width = 360,
+    height = 300;
 
-var margin = {
-    top: 30,
-    right: 10,
-    bottom: 50,
-    left: 50
-  },
-  width = 360,
-  height = 300;
+  var xValue = function(d) { var ave = (d["regulate"] + d["CO2limits"] + d["fundrenewables"])/3;return ave;}, // data -> value
+    xScale = d3.scaleLinear().range([margin.left, width-10]).domain([60,100]), // value -> display
+    xPoint = function(d) { return xScale(xValue(d));}, // data -> display
+    xAxis = d3.axisBottom(xScale).ticks(5);
 
-var xValue = function(d) { var ave = (d["regulate"] + d["CO2limits"] + d["fundrenewables"])/3;return ave;}, // data -> value
-  xScale = d3.scaleLinear().range([margin.left, width-10]).domain([60,100]), // value -> display
-  xPoint = function(d) { return xScale(xValue(d));}, // data -> display
-  xAxis = d3.axisBottom(xScale).ticks(5);
+  var yValue = function(d) { return d[weather];}, // data -> value
+    yScale = d3.scaleLinear().range([height-5, 20]).domain([-100,250]), // value -> display
+    yPoint = function(d) { return yScale(yValue(d)) ;}, // data -> display
+    yAxis = d3.axisLeft(yScale).ticks(5);
 
-var yValue = function(d) { return d[weather];}, // data -> value
-  yScale = d3.scaleLinear().range([height-5, 20]).domain([-100,250]), // value -> display
-  yPoint = function(d) { return yScale(yValue(d)) ;}, // data -> display
-  yAxis = d3.axisLeft(yScale).ticks(5);
+  var svg = d3.select("#" + party)
+    .append("svg")
+    .attr('width', width)
+    .attr('height', height)
+      .append("g")
 
-var svg = d3.select("#" + party)
-  .append("svg")
-  .attr('width', width)
-  .attr('height', height)
-    .append("g")
 
-svg.selectAll(".dot")
-  .data(countyArray)
-  .enter().append("circle")
-    .attr('class', 'dot')
-    .attr("r", 3)
-    .attr("cx", xPoint)
-    .attr("cy", yPoint)
-    .style("fill", function (d) {
-      switch(d["Outlier"]) {
-        case "Rep":
-          return "#F76E6E";
-          break;
-        case "Dem":
-          return "#78B4FE";
-          break;
-        case "None":
-          return "rgba(200, 200, 200, 0.25)";
-  }
+  var dots = svg.selectAll(".dot")
+    .data(countyArray);
+
+  dots.attr('class', 'dot');
+
+  dots.enter().append("circle")
+    .transition()
+      .attr("r", 3)
+      .attr("cx", xPoint)
+      .attr("cy", yPoint)
+      .style("fill", function (d) {
+        switch(d["Outlier"]) {
+          case "Rep":
+            return "#F76E6E";
+            break;
+          case "Dem":
+            return "#78B4FE";
+            break;
+          case "None":
+            return "rgba(200, 200, 200, 0.25)";
+    }
             })
     .attr('transform', 'translate(' + margin.left + ',' + 0 + ')')
 
-svg.append("g")
-  .attr("class", "scatter-axis")
-  .attr('transform', 'translate(' + margin.left + ',' + 0 + ')')
-  .call(yAxis)
-.append("text")
-  .attr("class", "label")
-  .attr("transform", "rotate(-90)")
-  .attr("x", -10)
-  .attr("y", 6)
-  .attr("dy", ".71em")
-  .style("text-anchor", "end")
-  .text("increase in days of weather events");
+  dots.exit().remove();
 
-svg.append("g")
-  .attr("class", "scatter-axis")
-  .attr("transform", "translate(0," + yScale(0)+ ")")
-  .call(xAxis)
-.append("text")
-  .attr("class", "label")
-  .attr("x", width)
-  .attr("y", 70)
-  .style("text-anchor", "end")
-  .text("Average support for climate change policies");
+  svg.append("g")
+    .attr("class", "scatter-axis")
+    .attr('transform', 'translate(' + margin.left + ',' + 0 + ')')
+    .call(yAxis)
+  .append("text")
+    .attr("class", "label")
+    .attr("transform", "rotate(-90)")
+    .attr("x", -10)
+    .attr("y", 6)
+    .attr("dy", ".71em")
+    .style("text-anchor", "end")
+    .text("increase in days of weather events");
+
+  svg.append("g")
+    .attr("class", "scatter-axis")
+    .attr("transform", "translate(0," + yScale(0)+ ")")
+    .call(xAxis)
+  .append("text")
+    .attr("class", "label")
+    .attr("x", width)
+    .attr("y", 70)
+    .style("text-anchor", "end")
+    .text("Average support for climate change policies");
 
 
-svg.append('rect')
-  .attr('class', 'blurb')
-  .attr('x', width-130)
-  .attr('y', 30)
-  .attr('width', 130)
-  .attr('height', 50)
-  .attr('rx', 5)
-  .attr('ry', 5)
-  //.style('opacity', 0.60)
-  .style('fill', "none")
-  .style("stroke","white");
+  svg.append('rect')
+    .attr('class', 'blurb')
+    .attr('x', width-130)
+    .attr('y', 30)
+    .attr('width', 130)
+    .attr('height', 50)
+    .attr('rx', 5)
+    .attr('ry', 5)
+    //.style('opacity', 0.60)
+    .style('fill', "none")
+    .style("stroke","white");
 
-svg.append('text')
-  .attr('x', width-120)
-  .attr('y', 50)
-  .attr('fill', function (d) {
-    switch(party) {
-      case "Rep":
-            return "#F76E6E";
-          break;
-      case "Dem":
-          return "#78B4FE";
-          break;
-      default:
-        return "rgba(200, 200, 200, 0.4)";
+  svg.append('text')
+    .attr('x', width-120)
+    .attr('y', 50)
+    .attr('fill', function (d) {
+      switch(party) {
+        case "Rep":
+              return "#F76E6E";
+            break;
+        case "Dem":
+            return "#78B4FE";
+            break;
+        default:
+          return "rgba(200, 200, 200, 0.4)";
+        }
+      ;})
+    .attr('font-size', "15px")
+    .attr('font-weight', "bold")
+    .text(function (d) {
+      return party + ". counties";
+    ;});
+
+  svg.append('text')
+    .attr('width', 90)
+    .attr('x', width-120)
+    .attr('y', 70)
+    .attr('fill', 'white')
+    .attr('font-size', "12px")
+    .text("No strong correlation")
+
+
 }
-    ;})
-  .attr('font-size', "15px")
-  .attr('font-weight', "bold")
-  .text(function (d) {
-    return party + ". counties";
-  ;});
-
-svg.append('text')
-  .attr('width', 90)
-  .attr('x', width-120)
-  .attr('y', 70)
-  .attr('fill', 'white')
-  .attr('font-size', "12px")
-  .text("No strong correlation")
-
-
-}
-
   </script>
