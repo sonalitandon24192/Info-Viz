@@ -1,4 +1,4 @@
-Do extreme weather events correlate with unexpected climate change beliefs? 
+Do extreme weather events in USA correlate with unexpected climate change beliefs in 2016? 
 
 An InfoViz will give you an answer!
 
